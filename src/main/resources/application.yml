@@ -4,16 +4,20 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
 server:
   port: 8769
+
 spring:
+  profiles:
+    active: dev
   application:
     name: service-zuul
-zuul:
-  host:
-    connect-timeout-millis: 15000
-  routes:
-    read:
-      path: /api-read/**
-      serviceId: programmer-tool-main
-    redis:
-      path: /api-redis/**
-      serviceId: programmer-tool-reader
+  cloud:
+    gateway:
+      routes:
+        - id: path_route
+          uri: lb://programmer-tool-reader  # 后端服务名
+          predicates:
+            - Path=/redis/**   # 路由地址
+          filters:
+            - name: AuthenticationFilter  # 身份认证
+            - name: AuthorizationFilter   # 用户鉴权
+            - StripPrefix=1 # 去掉前缀
